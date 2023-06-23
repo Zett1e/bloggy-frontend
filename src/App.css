@@ -27,3 +27,15 @@ body {
     background-color: #000;
     opacity: 0.5;
 }
+
+.profile {
+    position: absolute;
+    left: 0;
+    top: 3.2rem;
+    width: 100%;
+    padding: 10px ;
+    background-color: #333;
+    color: white;
+    border-radius: 5px;
+    z-index: 10;
+}

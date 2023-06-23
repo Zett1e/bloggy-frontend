@@ -1,14 +1,17 @@
 import { Button, TextField } from "@mui/material";
-import React from "react";
+import React, { useContext } from "react";
 import { useState } from "react";
-import { api } from "../api/api";
-import { useLocation } from "react-router-dom";
+import { blogApi } from "../api/api";
+import { useLocation, useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/authContext";
 
 const BlogForm = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const path = useLocation().pathname;
   const blog = useLocation().state?.blog;
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate()
 
   const initialCreateState = {
     title: "",
@@ -28,10 +31,12 @@ const BlogForm = () => {
     path === "/create" ? initialCreateState : initialEditState
   );
 
+  console.log(error);
+
   const createHandler = (e) => {
     e.preventDefault();
-    api
-      .post("/", { ...newBlog, user_id: 2 })
+    blogApi
+      .post("/", { ...newBlog, user_id: user.id })
       .then((res) => {
         setNewBlog({ title: "", category: "", imageUrl: "", body: "" });
         setSuccess(true);
@@ -45,7 +50,7 @@ const BlogForm = () => {
           setSuccess(true);
           setError(null);
         } else {
-          setError(err.message);
+          setError(err.response.data.error);
         }
         console.log(err.response.data.error);
       });
@@ -54,18 +59,21 @@ const BlogForm = () => {
   const updateHandler = (e) => {
     e.preventDefault();
 
-    api.put(`/${blog?.id}`,newBlog).then((res) => {
+    blogApi.put(`/${blog?.id}`,newBlog).then((res) => {
       setSuccess(true);
-      setError("");
+      setError(null);
     })
     .catch((err) => {
       if (
         err.response?.data?.error === "Do not know how to serialize a BigInt"
       ) {
         setSuccess(true);
-        setError("");
+        setError(null);
+        setTimeout(() => {
+          navigate('/')
+        }, 500);
       } else {
-        setError(err.message);
+        setError(err.response.data.error);
       }
       console.log(err.response.data.error);
     });
@@ -116,14 +124,19 @@ const BlogForm = () => {
         />
 
         {error && (
+          error.message ?
           <p className="px-5 py-3 bg-red-300 text-red-600 rounded">
             {error.message}
+          </p>
+          :
+          <p className="px-5 py-3 bg-red-300 text-red-600 rounded">
+            {error}
           </p>
         )}
 
         {success && (
           <p className="px-5 py-3 bg-green-300 text-green-600 rounded">
-            Blog created successfully
+            Blog {path === "/create" ? "Created" : "Edited"} successfully
           </p>
         )}
 

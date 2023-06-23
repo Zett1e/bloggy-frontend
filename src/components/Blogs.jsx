@@ -1,18 +1,21 @@
+import { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/authContext";
 import BlogCard from "./BlogCard";
 
 const Blogs = ({ blogs }) => {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const categories = [
     "Game",
     "Technology",
     "Bussiness",
     "Animation",
-    "Politic",
+    "Politics",
     "Science",
     "Film",
     "Sport",
-    "Social",
+    "History",
   ];
   return (
     <div className="md:flex p-5 gap-10">
@@ -21,7 +24,7 @@ const Blogs = ({ blogs }) => {
           {blogs
             .map((blog) => (
               <div key={blog.id}>
-                <Link to={`/blogs/${blog.id}`} state={{ blog }}>
+                <Link to={ user ? `/blogs/${blog.id}`: "/login"} state={{ blog }}>
                   <BlogCard blog={blog} />
                 </Link>
               </div>

@@ -7,21 +7,48 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { formatDistanceToNow } from "date-fns";
-import React from "react";
+import React, { useContext, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { api } from "../api/api";
+import { blogApi } from "../api/api";
+import { AuthContext } from "../context/authContext";
 
 const BlogDetail = () => {
   const { blog } = useLocation().state;
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+  const [like, setLike] = useState(0);
+  const [liked, setLiked] = useState(false);
+  const { setAlert, setDeleted } = useContext(AuthContext);
 
   const deleteHandler = () => {
-    api
-      .delete(`/${blog.id}`)
-      .then((res) => {
-        navigate("/");
-      })
-      .catch((err) => console.log(err));
+    if (user.id !== blog.user_id) {
+      setAlert(true);
+      setTimeout(() => {
+        setAlert(false);
+      }, 2000);
+    } else {
+      blogApi
+        .delete(`/${blog.id}`)
+        .then((res) => {
+          setDeleted(true);
+          setTimeout(() => {
+            setDeleted(false);
+          }, 2000);
+          navigate("/");
+        })
+        .catch((err) => console.log(err));
+    }
+  };
+
+  const editHandler = () => {
+    if (user.id !== blog.user_id) {
+      setAlert(true);
+      setTimeout(() => {
+        setAlert(false);
+      }, 2000);
+    } else {
+      navigate("/edit", { state: { blog } });
+    }
   };
 
   return (
@@ -29,7 +56,10 @@ const BlogDetail = () => {
       <div className="space-y-5">
         <div className="flex items-center gap-5">
           <div className="w-14 rounded-full overflow-hidden">
-            <img src={require("../assets/images/avatar.jpg")} alt="avatar" />
+            <img
+              src={require(`../assets/images/avatar${user?.id / 2 ? 1 : 2}.png`)}
+              alt="avatar"
+            />
           </div>
           <div className="w-full">
             <div className="flex justify-between items-center">
@@ -40,7 +70,7 @@ const BlogDetail = () => {
               <div className="flex gap-x-2 md:gap-x-5">
                 <BookmarkIcon className="w-5 h-6 cursor-pointer" />
                 <PencilIcon
-                  onClick={() => navigate("/edit", { state: { blog } })}
+                  onClick={editHandler}
                   className="w-5 cursor-pointer"
                 />
                 <TrashIcon
@@ -65,20 +95,27 @@ const BlogDetail = () => {
               {blog.category}
             </p>
           </div>
-          <div className="rounded-md overflow-hidden">
-            <img
-              src={require("../assets/images/Wallpaper2.jpg")}
-              alt="poster"
-            />
-          </div>
+          {blog.imageUrl && (
+            <div className="rounded-md overflow-hidden">
+              <img src={blog.imageUrl} alt="poster" />
+            </div>
+          )}
           <article>
             <p>{blog.body}</p>
           </article>
           <div className="flex justify-between">
             <div className="flex gap-10">
               <div className="flex items-center gap-2">
-                <HandThumbUpIcon className="w-5 cursor-pointer" />
-                <p>1k</p>
+                <HandThumbUpIcon
+                  onClick={() => {
+                    liked
+                      ? setLike((prev) => prev - 1)
+                      : setLike((prev) => prev + 1);
+                    setLiked((prev) => !prev);
+                  }}
+                  className={`w-5 cursor-pointer ${liked && "text-yellow-500"}`}
+                />
+                <p>{like}</p>
               </div>
               <div className="flex items-center gap-2">
                 <ChatBubbleLeftIcon className="w-5 cursor-pointer" />

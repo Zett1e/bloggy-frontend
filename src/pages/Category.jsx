@@ -1,16 +1,18 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
-import { api } from "../api/api";
+import { blogApi } from "../api/api";
 import BlogCard from "../components/BlogCard";
+import { AuthContext } from "../context/authContext";
 
 const Category = () => {
   const { category } = useLocation().state;
   const [blogs, setBlogs] = useState([]);
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     (() => {
-      api
+      blogApi
         .get(`/filter/search?category=${category}`)
         .then((res) => {
           setBlogs(res.data);
@@ -28,7 +30,7 @@ const Category = () => {
         <div className="space-y-5">
           {blogs?.map((blog) => (
             <div key={blog.id}>
-              <Link to={`/blogs/${blog.id}`} state={{ blog }}>
+              <Link to={user ? `/blogs/${blog.id}` : "/login"} state={{ blog }}>
                 <BlogCard blog={blog} />
               </Link>
             </div>
